@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projeto Aguiar7x - BB Full</title>
+    <style>
+        :root {
+            --bb-blue: #2b4ccb;
+            --bb-yellow: #f8e71c;
+            --bg-gray: #f8f9fb;
+            --white: #ffffff;
+            --text-dark: #222222;
+            --text-gray: #666666;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: var(--white);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        /* --- CABEÇALHO --- */
+        .header {
+            background-color: var(--bb-blue);
+            color: white;
+            padding: 45px 20px 20px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .bb-logo-header { width: 28px; height: 28px; }
+        .header h1 { font-size: 1.25rem; font-weight: 500; margin: 0; }
+        .header-icons { display: flex; gap: 18px; align-items: center; }
+
+        /* --- ESTRUTURA --- */
+        #main-app { display: block; }
+        .balance-section {
+            background-color: var(--bg-gray);
+            display: flex;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .balance-col { flex: 1; cursor: pointer; }
+        .balance-label { font-size: 0.8rem; color: var(--text-gray); display: block; margin-bottom: 4px; }
+        .balance-value { font-size: 1.1rem; font-weight: bold; color: var(--bb-blue); }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px 10px;
+            padding: 30px 15px;
+            text-align: center;
+        }
+        .icon-circle {
+            width: 55px; height: 55px;
+            background: #f0f3ff;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--bb-blue); font-size: 1.4rem;
+            cursor: pointer;
+        }
+        .menu-text { font-size: 0.75rem; color: var(--text-dark); }
+
+        /* --- MODAIS --- */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-content {
+            background: white; width: 85%; padding: 25px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        input { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 1rem; outline: none; }
+        .btn-save { background: var(--bb-blue); color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: bold; margin-top: 10px; }
+
+        /* --- LOADING --- */
+        #loading-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--bb-blue); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- COMPROVANTE FIEL ÀS IMAGENS --- */
+        #receipt-screen { 
+            display: none; 
+            background: white; 
+            min-height: 100vh; 
+            padding: 15px 25px; 
+            box-sizing: border-box; 
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            z-index: 3000;
+        }
+        .receipt-nav { display: flex; align-items: center; margin-bottom: 25px; cursor: pointer; }
+        .receipt-nav span { font-size: 1.5rem; color: #000; margin-right: 20px; }
+        
+        .receipt-brand { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 20px; }
+        .receipt-brand svg { width: 32px; height: 32px; margin-bottom: 8px; }
+        .receipt-brand b { font-size: 1.1rem; color: #000; }
+
+        .receipt-main-val { color: var(--bb-blue); font-size: 1.9rem; font-weight: 700; margin-bottom: 4px; }
+        .receipt-main-date { font-size: 0.75rem; color: var(--text-gray); margin-bottom: 18px; }
+        
+        .receipt-status-badge { 
+            color: var(--text-dark); font-weight: 700; font-size: 1rem; 
+            display: flex; align-items: center; gap: 8px; margin-bottom: 25px; 
+        }
+        .receipt-status-badge::before { 
+            content: '✓'; background: var(--bb-blue); color: white; border-radius: 50%; 
+            width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; 
+        }
+
+        .receipt-divider { border-bottom: 1px solid #eeeeee; margin: 20px 0; }
+
+        .receipt-section-title { font-size: 0.78rem; color: var(--text-gray); margin-bottom: 6px; font-weight: 500; }
+        .receipt-row { margin-bottom: 14px; }
+        .receipt-row-label { font-size: 0.78rem; color: var(--text-gray); margin-bottom: 2px; }
+        .receipt-row-value { font-size: 0.98rem; font-weight: 700; color: #111; }
+        .receipt-row-sub { font-size: 0.78rem; color: var(--text-gray); margin-top: 1px; }
+
+        .receipt-footer { font-size: 0.75rem; color: var(--text-gray); line-height: 1.5; margin-top: 30px; padding-bottom: 40px; }
+
+        /* --- TOAST --- */
+        #fake-toast {
+            position: fixed; top: -120px; left: 12px; right: 12px; background: #ffffff; border-radius: 20px; padding: 12px 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); z-index: 9999; display: flex; align-items: center; border-left: 6px solid var(--bb-yellow);
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        #fake-toast.show { top: 20px; }
+
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; }
+        .nav-item { font-size: 0.7rem; color: #888; text-align: center; }
+        .badge { background: var(--bb-yellow); color: #000; font-size: 0.6rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; margin-left: 2px; }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <div style="color: var(--bb-blue); font-weight: bold;">Processando Pix...</div>
+    </div>
+
+    <div id="main-app">
+        <div class="header">
+            <div class="header-left">
+                <svg class="bb-logo-header" viewBox="0 0 100 100" fill="var(--bb-yellow)">
+                    <path d="M50 0 L100 50 L50 100 L0 50 Z M50 20 L80 50 L50 80 L20 50 Z"/>
+                </svg>
+                <h1>Olá, Aguiar7x</h1>
+            </div>
+            <div class="header-icons"><span>👁️</span> <span>💬</span> <span>🚪</span></div>
+        </div>
+
+        <div class="balance-section">
+            <div class="balance-col" onclick="openModal('balanceModal')">
+                <span class="balance-label">Saldo disponível</span>
+                <span class="balance-value" id="main-balance">R$ 200,00</span>
+            </div>
+            <div class="balance-col">
+                <span class="balance-label">Agendado até 31/Ago</span>
+                <span class="balance-value">R$ 0,00</span>
+            </div>
+        </div>
+
+        <div class="menu-grid">
+            <div class="menu-item"><div class="icon-circle">📄</div><span class="menu-text">Extrato</span></div>
+            <div class="menu-item"><div class="icon-circle">📋</div><span class="menu-text">Pagar</span></div>
+            <div class="menu-item"><div class="icon-circle">⇄</div><span class="menu-text">Transf.</span></div>
+            <div class="menu-item" onclick="openModal('pixModal')"><div class="icon-circle">💠</div><span class="menu-text">Pix</span></div>
+            <div class="menu-item"><div class="icon-circle">💰</div><span class="menu-text">Emprést.</span></div>
+            <div class="menu-item"><div class="icon-circle">📈</div><span class="menu-text">Invest.</span></div>
+            <div class="menu-item"><div class="icon-circle">🚗</div><span class="menu-text">Consórcio</span></div>
+            <div class="menu-item"><div class="icon-circle">➕</div><span class="menu-text">Pers.</span></div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item">☰<br>Menu<span class="badge">2</span></div>
+            <div class="nav-item" style="color:var(--bb-blue)">🏠<br>Início</div>
+            <div class="nav-item">🔍<br>Busca</div>
+            <div class="nav-item">🔔<br>Alertas<span class="badge">17</span></div>
+            <div class="nav-item" style="opacity:0.3" onclick="openModal('secretModal')">⚙️<br>Config</div>
+        </div>
+    </div>
+
+    <div id="receipt-screen">
+        <div class="receipt-nav" onclick="closeReceipt()"><span>❮</span></div>
+        
+        <div class="receipt-brand">
+            <svg viewBox="0 0 100 100" fill="var(--bb-blue)"><path d="M50 0 L100 50 L50 100 L0 50 Z M50 20 L80 50 L50 80 L20 50 Z"/></svg>
+            <b>Comprovante BB</b>
+        </div>
+        
+        <div class="receipt-main-val" id="res-val">R$ 0,00</div>
+        <div class="receipt-main-date" id="res-date-top">04/05/2026 às 20:54:21</div>
+        <div class="receipt-status-badge">Pix Enviado</div>
+        
+        <div class="receipt-divider"></div>
+        
+        <div class="receipt-section-title">Recebedor</div>
+        <div class="receipt-row">
+            <div class="receipt-row-value" id="res-dest">Yago R T Aguiar</div>
+            <div class="receipt-row-label">CPF</div>
+            <div class="receipt-row-sub">***.859.488-**</div>
+        </div>
+        <div class="receipt-row">
+            <div class="receipt-row-label">Agência</div>
+            <div class="receipt-row-value">0001</div>
+        </div>
+        <div class="receipt-row">
+            <div class="receipt-row-label">Instituição</div>
+            <div class="receipt-row-value">22896431 PICPAY</div>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-section-title">Pagador</div>
+        <div class="receipt-row">
+            <div class="receipt-row-value" id="res-pagador">Luis H S Cordeiro</div>
+            <div class="receipt-row-label">CPF</div>
+            <div class="receipt-row-sub">***.058.669-**</div>
+        </div>
+        <div class="receipt-row">
+            <div class="receipt-row-label">Instituição</div>
+            <div class="receipt-row-value">00000000 BCO DO BRASIL S.A.</div>
+        </div>
+
+        <div class="receipt-divider"></div>
+        
+        <div class="receipt-row">
+            <div class="receipt-row-label">Informações adicionais</div>
+            <div class="receipt-row-sub" style="word-break: break-all; font-size: 0.72rem;" id="res-id">ID: E0000000020260504235324437539124</div>
+        </div>
+
+        <div class="receipt-footer">
+            Comprovante emitido em: <span id="res-date-footer">04/05/2026 às 20:54:26</span><br>
+            Documento: 000000000050410<br>
+            Autenticação SISBB: C.695.180.7C3.DC9.720
+        </div>
+    </div>
+
+    <div id="pixModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--bb-blue)">Enviar Pix</h2>
+            <input type="text" id="pix-dest" placeholder="Nome do Recebedor">
+            <input type="text" id="pix-pagador" placeholder="Seu Nome (Pagador)">
+            <input type="number" id="pix-val" placeholder="Valor (ex: 10,00)">
+            <button class="btn-save" onclick="generateReceipt()">Gerar Comprovante</button>
+            <button style="background:none; border:none; color:gray; width:100%; margin-top:15px;" onclick="closeModal('pixModal')">Voltar</button>
+        </div>
+    </div>
+
+    <div id="balanceModal" class="modal">
+        <div class="modal-content">
+            <h2>Ajustar Saldo</h2>
+            <input type="number" id="new-balance-input" placeholder="Novo valor total">
+            <button class="btn-save" onclick="saveBalance()">Salvar</button>
+            <button style="background:none; border:none; color:gray; width:100%; margin-top:15px;" onclick="closeModal('balanceModal')">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="secretModal" class="modal">
+        <div class="modal-content">
+            <h2>Receber Pix Fake</h2>
+            <input type="text" id="notif-name" placeholder="Remetente">
+            <input type="number" id="notif-value" placeholder="Valor">
+            <input type="number" id="notif-cycles" placeholder="Ciclos">
+            <button class="btn-save" style="background:#28a745" onclick="startNotifications()">Iniciar</button>
+            <button style="background:none; border:none; color:gray; width:100%; margin-top:15px;" onclick="closeModal('secretModal')">Fechar</button>
+        </div>
+    </div>
+
+    <div id="fake-toast">
+        <div style="width:45px; height:45px; background:var(--bb-blue); border-radius:12px; margin-right:12px; display:flex; align-items:center; justify-content:center; color:var(--bb-yellow); font-weight:bold; font-size:1.3rem;">Ɓ</div>
+        <div class="toast-content">
+            <strong style="color:var(--bb-blue)">Pix recebido</strong>
+            <span id="toast-body">...</span>
+        </div>
+    </div>
+
+    <script>
+        let currentBalance = 200.00;
+
+        function updateBalanceDisplay() {
+            document.getElementById('main-balance').innerText = `R$ ${currentBalance.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function saveBalance() {
+            const val = parseFloat(document.getElementById('new-balance-input').value);
+            if(!isNaN(val)) currentBalance = val;
+            updateBalanceDisplay();
+            closeModal('balanceModal');
+        }
+
+        function generateReceipt() {
+            const valInput = document.getElementById('pix-val').value;
+            const val = parseFloat(valInput);
+            if(isNaN(val)) return;
+
+            currentBalance -= val;
+            updateBalanceDisplay();
+
+            const agora = new Date();
+            const dataStr = agora.toLocaleDateString('pt-BR');
+            const horaStr = agora.toLocaleTimeString('pt-BR');
+            const randomID = "E" + Math.random().toString().slice(2, 12) + agora.getTime();
+
+            document.getElementById('res-val').innerText = 'R$ ' + val.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            document.getElementById('res-dest').innerText = document.getElementById('pix-dest').value || "Yago R T Aguiar";
+            document.getElementById('res-pagador').innerText = document.getElementById('pix-pagador').value || "Luis H S Cordeiro";
+            document.getElementById('res-date-top').innerText = `${dataStr} às ${horaStr}`;
+            document.getElementById('res-date-footer').innerText = `${dataStr} às ${horaStr}`;
+            document.getElementById('res-id').innerText = "ID: " + randomID;
+
+            closeModal('pixModal');
+            document.getElementById('main-app').style.display = 'none';
+            document.getElementById('loading-screen').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('receipt-screen').style.display = 'block';
+                window.scrollTo(0,0);
+            }, 2000);
+        }
+
+        function closeReceipt() {
+            document.getElementById('receipt-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+        }
+
+        function startNotifications() {
+            const name = document.getElementById('notif-name').value || "Aguiar";
+            const val = parseFloat(document.getElementById('notif-value').value) || 0;
+            let cycles = parseInt(document.getElementById('notif-cycles').value) || 1;
+            
+            closeModal('secretModal');
+            let count = 0;
+            const run = () => {
+                if (count < cycles) {
+                    currentBalance += val;
+                    updateBalanceDisplay();
+                    const toast = document.getElementById('fake-toast');
+                    document.getElementById('toast-body').innerHTML = `<b>${name}</b> enviou um Pix de <b>R$ ${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</b>.`;
+                    toast.classList.add('show');
+                    setTimeout(() => { toast.classList.remove('show'); }, 4000);
+                    count++;
+                    if (count < cycles) setTimeout(run, 6500);
+                }
+            };
+            run();
+        }
+    </script>
+</body>
+  </html>
+  
